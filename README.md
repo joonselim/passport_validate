@@ -116,6 +116,13 @@ Digital ID endpoints (the POSTs are encrypted the same way):
 
 `dg2` is optional. Errors: `400` if a field is missing or the request cannot be decrypted, `422` if the data is not a passport file.
 
+## Changes
+
+- **Digital ID.** Issues a device-bound ID in the mdoc shape, and adds a demo verifier for presenting it.
+- **Encryption.** The app's requests and the server's answers are encrypted with HPKE.
+- **Master list fix.** `.ml` files now load, so the BSI Master List works and real passports reach `TRUSTED`.
+- **First version.** Passive Authentication: data hashes, SOD signature, and CSCA chain.
+
 ## Libraries
 
 - [JMRTD](https://jmrtd.org): reads passport files
