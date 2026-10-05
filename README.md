@@ -28,6 +28,15 @@ You can also test this server alone with the fake passport samples below.
 
 `overall` is `PASS` when all three pass, `UNVERIFIED` when no CSCA is loaded, and `FAIL` otherwise.
 
+## Encryption
+
+The app encrypts its request with HPKE (RFC 9180: X25519, HKDF-SHA256, ChaCha20-Poly1305) using the server's public key.
+The answer is encrypted with a key derived from the same request, so only that app can read it.
+Anyone watching the network sees only ciphertext.
+
+On first run the server creates its private key in `keys/` (not in git).
+Copy `hpkePublicKey` from `GET /health` into the iOS app.
+
 ## Structure
 
 ```
@@ -35,9 +44,11 @@ src/main/java/dev/joonselim/passport/
   api/      HTTP endpoints (GET /health, POST /verify)
   verify/   The three checks
   trust/    Loads CSCA certificates from csca/
+  crypto/   HPKE encryption with the app
   config/   Settings
 src/test/   Tests with a fake passport
 csca/       Put CSCA certificates here (not in git)
+keys/       Server's private key, created on first run (not in git)
 ```
 
 ## Run
@@ -66,15 +77,24 @@ curl -s -X POST localhost:8080/api/v1/passport/verify \
 
 ## API
 
-`GET /api/v1/passport/health` returns `{"status":"ok","cscaCertificates":N}`.
+`GET /api/v1/passport/health` returns the status, the number of CSCA certificates, and the server's public key (`hpkePublicKey`, `hpkeKeyId`).
 
-`POST /api/v1/passport/verify` takes the raw chip files as Base64:
+`POST /api/v1/passport/verify-sealed` is what the app uses. Both sides are encrypted:
+
+```json
+request:  { "enc": "...", "ciphertext": "..." }
+response: { "ciphertext": "..." }
+```
+
+Inside the encryption, the request is the raw chip files as Base64:
 
 ```json
 { "dg1": "...", "sod": "...", "dg2": "..." }
 ```
 
-`dg2` is optional. Errors: `400` if a field is missing, `422` if the data is not a passport file.
+`POST /api/v1/passport/verify` takes that same JSON without encryption. It is only for local testing with curl.
+
+`dg2` is optional. Errors: `400` if a field is missing or the request cannot be decrypted, `422` if the data is not a passport file.
 
 ## Libraries
 

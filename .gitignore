@@ -44,3 +44,5 @@ csca/*.pem
 csca/*.ml
 # Real passport exports contain personal data
 samples/
+# HPKE private key
+keys/
