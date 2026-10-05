@@ -4,8 +4,10 @@ A Java server that checks whether ePassport chip data is genuine (ICAO 9303 Pass
 
 ## Why
 
-To mimic how Apple Wallet adds a Digital ID from a passport.
-The phone reads the chip, and a server decides whether the data is real. The phone alone cannot be trusted with that decision.
+A toy project to understand the standards behind wallet identity, mainly ICAO 9303 (ePassports).
+
+The app sends the raw chip data here, and the server checks it independently so it can make its own decision.
+This has a cost: personal data has to reach the server. The server does not log or store request data.
 
 ## You need two repos
 
