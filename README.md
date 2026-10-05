@@ -28,6 +28,16 @@ You can also test this server alone with the fake passport samples below.
 
 `overall` is `PASS` when all three pass, `UNVERIFIED` when no CSCA is loaded, and `FAIL` otherwise.
 
+## Digital ID
+
+When a passport passes all three checks, the server can issue a Digital ID:
+
+1. The app gets a one-time challenge and signs it with a new Secure Enclave key.
+2. The server checks that signature, runs the three checks, and builds an ID in the ISO 18013-5 mdoc shape. Each field is hashed with a random salt, and the issuer signs the list of hashes plus the device public key (COSE_Sign1, ES256).
+3. Nothing is stored. The passport data is dropped after the answer is sent.
+
+A demo verifier (in real life, another company) asks for some fields with a one-time nonce. It accepts only if the issuer signature, validity dates, field hashes, device signature and nonce all check out, and nothing beyond the request was sent.
+
 ## Encryption
 
 The app encrypts its request with HPKE (RFC 9180: X25519, HKDF-SHA256, ChaCha20-Poly1305) using the server's public key.
@@ -45,10 +55,11 @@ src/main/java/dev/joonselim/passport/
   verify/   The three checks
   trust/    Loads CSCA certificates from csca/
   crypto/   HPKE encryption with the app
+  digitalid/ Digital ID issuer, COSE signatures, demo verifier
   config/   Settings
 src/test/   Tests with a fake passport
 csca/       Put CSCA certificates here (not in git)
-keys/       Server's private key, created on first run (not in git)
+keys/       Server's HPKE key and Digital ID issuer key, created on first run (not in git)
 ```
 
 ## Run
@@ -92,6 +103,15 @@ Inside the encryption, the request is the raw chip files as Base64:
 { "dg1": "...", "sod": "...", "dg2": "..." }
 ```
 
+Digital ID endpoints (the POSTs are encrypted the same way):
+
+| Endpoint | Does |
+|---|---|
+| `GET /api/v1/issuer/challenge` | One-time challenge for the device key |
+| `POST /api/v1/issuer/issue-sealed` | Check the passport and issue a Digital ID |
+| `GET /api/v1/verifier/request?purpose=age\|identity` | What the demo verifier wants |
+| `POST /api/v1/verifier/present-sealed` | Check a presented Digital ID |
+
 `POST /api/v1/passport/verify` takes that same JSON without encryption. It is only for local testing with curl.
 
 `dg2` is optional. Errors: `400` if a field is missing or the request cannot be decrypted, `422` if the data is not a passport file.
@@ -99,5 +119,6 @@ Inside the encryption, the request is the raw chip files as Base64:
 ## Libraries
 
 - [JMRTD](https://jmrtd.org): reads passport files
-- [Bouncy Castle](https://www.bouncycastle.org): signatures and certificates
+- [Bouncy Castle](https://www.bouncycastle.org): signatures, certificates, HPKE
+- [CBOR-Java](https://github.com/peteroupc/CBOR-Java): CBOR for the mdoc format
 - Spring Boot

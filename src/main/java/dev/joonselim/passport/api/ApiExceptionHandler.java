@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import dev.joonselim.passport.crypto.SealedPayloadException;
+import dev.joonselim.passport.digitalid.DigitalIdException;
 import dev.joonselim.passport.verify.PassportParseException;
 
 /** Turns errors into JSON error responses. */
@@ -28,6 +29,13 @@ public class ApiExceptionHandler {
 	public ResponseEntity<Map<String, Object>> undecryptable(SealedPayloadException e) {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body(Map.of("error", "undecryptable", "errors", List.of(e.getMessage())));
+	}
+
+	/** 400: an issuance or presentation request was refused (bad challenge, bad proof, ...). */
+	@ExceptionHandler(DigitalIdException.class)
+	public ResponseEntity<Map<String, Object>> digitalId(DigitalIdException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(Map.of("error", e.code(), "errors", List.of(e.getMessage())));
 	}
 
 	/** 400: a required field (dg1 or sod) is missing. */

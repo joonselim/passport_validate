@@ -27,7 +27,8 @@ import dev.joonselim.passport.trust.CscaTrustStore;
 
 /** HTTP tests against a running server. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = "passport.hpke.key-file=build/test-keys/hpke-x25519.key")
+		properties = { "passport.hpke.key-file=build/test-keys/hpke-x25519.key",
+				"passport.issuer.key-file=build/test-keys/issuer-p256.key", "passport.issuer.cert-file=build/test-keys/issuer.cer" })
 class VerifyControllerTest {
 
 	static SyntheticPassport passport;

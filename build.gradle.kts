@@ -28,6 +28,8 @@ dependencies {
 	// Crypto: CMS, PKIX, RSA-PSS, ECDSA
 	implementation("org.bouncycastle:bcprov-jdk18on:$bouncyCastleVersion")
 	implementation("org.bouncycastle:bcpkix-jdk18on:$bouncyCastleVersion")
+	// CBOR for the Digital ID (ISO 18013-5 mdoc format)
+	implementation("com.upokecenter:cbor:4.5.6")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
